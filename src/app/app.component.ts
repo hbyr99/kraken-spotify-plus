@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HttpParams } from '@angular/common/http';
-import * as shajs from 'sha.js';
+import shajs from 'sha.js';
 
 function randomString (length: number) {
   const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -41,7 +41,7 @@ export class AppComponent {
     const paramObject = {
       response_type: 'code',
       //TODO: replace this w/ your client_id from the spotify developer page  
-      client_id: 'your-client-id',
+      client_id: '5ea95dd4b2d5448992411461aad7436c',
       scope: 'user-read-currently-playing',
       redirect_uri: 'http://localhost:4200/callback',
       state: generated_state,
