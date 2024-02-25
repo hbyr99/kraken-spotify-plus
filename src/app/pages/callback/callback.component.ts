@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SpotifyDataService } from '../../services/spotify-data/spotify-data.service';
 import { Router } from '@angular/router';
+import { AccessResponse } from '../../utils/interfaces';
 
 @Component({
   selector: 'app-callback',
@@ -34,11 +35,10 @@ export class CallbackComponent implements OnInit{
           .getData(returnedCode, previousCodeVerifier)
           .subscribe({
             next: result => {
-              console.log(result)
-              localStorage.setItem('auth_object', JSON.stringify(result))
+              this.spotifyDataService.setAccessToken(result as AccessResponse)
+              //localStorage.setItem('auth_object', JSON.stringify(result))
             },
             complete: () => {
-              console.log('done');
               this._router.navigate(['']);
             }
           })

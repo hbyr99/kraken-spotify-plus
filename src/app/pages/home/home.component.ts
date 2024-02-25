@@ -7,18 +7,9 @@ import { Component, OnInit } from '@angular/core';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent{
     authObject: string | null = null
     userAuthenticated: boolean = false
   
     constructor() { }
-  
-    ngOnInit(): void {
-      const authObjectJson = localStorage.getItem('auth_object')
-      if (authObjectJson){
-        this.authObject = JSON.parse(authObjectJson)
-        this.userAuthenticated = true
-      }
-    }
-
 }
