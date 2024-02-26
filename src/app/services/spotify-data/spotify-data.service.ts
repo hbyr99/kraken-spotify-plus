@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import shajs from 'sha.js';
 import { AccessResponse } from '../../utils/interfaces';
 
-function randomString (length: number) {
+function randomString(length: number) {
   const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
   var result = ''
   for (var i = length; i > 0; --i)
@@ -19,9 +19,20 @@ export class SpotifyDataService {
   private client_id = '5ea95dd4b2d5448992411461aad7436c'
   private auth_url = 'https://accounts.spotify.com/api/token'
   private redirect_uri = 'http://localhost:4200/callback'
-  private access_token : AccessResponse | null = null;
+  private access_token: AccessResponse | null = null;
 
-  constructor (private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    setInterval(
+      () => 
+      this.isAuthenticated() 
+      ? this.getCurrentlyPlaying()
+        .subscribe({
+          next: result => console.log(JSON.stringify(result))
+        }) 
+      : console.log('No access token found.'),
+      5000
+    )
+  }
 
   public redirectAuthFlow() {
     const generated_state: string = randomString(16)
@@ -57,25 +68,33 @@ export class SpotifyDataService {
     window.location.href = authLink
   }
 
-  public getData (code: string, codeVerifier: string): Observable<any> {
+  public getData(code: string, codeVerifier: string): Observable<any> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded',
     })
     const body = new HttpParams()
-    .set('code', code)
-    .set('redirect_uri', this.redirect_uri)
-    .set('grant_type', 'authorization_code')
-    .set('client_id', this.client_id)
-    .set('code_verifier', codeVerifier)
+      .set('code', code)
+      .set('redirect_uri', this.redirect_uri)
+      .set('grant_type', 'authorization_code')
+      .set('client_id', this.client_id)
+      .set('code_verifier', codeVerifier)
 
     return this.http.post(this.auth_url, body, { headers: headers })
   }
 
-  public setAccessToken(token_info : AccessResponse) {
+  public setAccessToken(token_info: AccessResponse) {
     this.access_token = token_info;
   }
 
-  public isAuthenticated() : boolean {
-    return !!this.access_token
+  public isAuthenticated(): boolean {
+    return !!this.access_token;
+  }
+
+  public getCurrentlyPlaying(): Observable<any> {
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.access_token?.access_token}`
+    })
+    return this.http.get('https://api.spotify.com/v1/me/player/currently-playing', 
+      { headers: headers })
   }
 }
