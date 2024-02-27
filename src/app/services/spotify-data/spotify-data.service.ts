@@ -19,9 +19,10 @@ export class SpotifyDataService {
   private client_id = '5ea95dd4b2d5448992411461aad7436c'
   private auth_url = 'https://accounts.spotify.com/api/token'
   private redirect_uri = 'http://localhost:4200/callback'
-  private access_token: AccessResponse | null = null;
+  private access_token: string | null = null;
 
   constructor(private http: HttpClient) {
+    this.access_token = localStorage.getItem('access_token');
     setInterval(
       () => 
       this.isAuthenticated() 
@@ -83,7 +84,7 @@ export class SpotifyDataService {
   }
 
   public setAccessToken(token_info: AccessResponse) {
-    this.access_token = token_info;
+    this.access_token = token_info.access_token;
     localStorage.setItem('access_token', token_info.access_token);
     localStorage.setItem('expires_in', token_info.expires_in.toString());
     localStorage.setItem('refresh_token', token_info.refresh_token);
@@ -123,7 +124,7 @@ export class SpotifyDataService {
   public getCurrentlyPlaying(): Observable<any> {
     this.refreshToken();
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${this.access_token?.access_token}`
+      'Authorization': `Bearer ${this.access_token}`
     })
     return this.http.get('https://api.spotify.com/v1/me/player/currently-playing', 
       { headers: headers })
