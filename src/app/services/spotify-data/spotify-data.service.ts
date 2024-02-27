@@ -20,6 +20,7 @@ export class SpotifyDataService {
   private auth_url = 'https://accounts.spotify.com/api/token'
   private redirect_uri = 'http://localhost:4200/callback'
   private access_token: string | null = null;
+  private currently_playing: SpotifyApi.CurrentlyPlayingObject | null = null;
 
   constructor(private http: HttpClient) {
     this.access_token = localStorage.getItem('access_token');
@@ -27,9 +28,9 @@ export class SpotifyDataService {
       () => 
       this.isAuthenticated() 
       ? this.getCurrentlyPlaying()
-        .subscribe({
-          next: result => console.log(JSON.stringify(result))
-        }) 
+      .subscribe({
+        next: result => this.setCurrentlyPlaying(result as SpotifyApi.CurrentlyPlayingObject)
+      }) 
       : console.log('No access token found.'),
       5000
     )
@@ -121,12 +122,16 @@ export class SpotifyDataService {
     return !!this.access_token;
   }
 
-  public getCurrentlyPlaying(): Observable<any> {
+  private getCurrentlyPlaying(): Observable<any> {
     this.refreshToken();
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${this.access_token}`
     })
     return this.http.get('https://api.spotify.com/v1/me/player/currently-playing', 
       { headers: headers })
+  }
+
+  private setCurrentlyPlaying(current_info : SpotifyApi.CurrentlyPlayingObject) {
+    this.currently_playing = current_info;
   }
 }
