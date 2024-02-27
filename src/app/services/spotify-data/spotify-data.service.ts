@@ -71,7 +71,7 @@ export class SpotifyDataService {
   public getData(code: string, codeVerifier: string): Observable<any> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/x-www-form-urlencoded',
-    })
+    });
     const body = new HttpParams()
       .set('code', code)
       .set('redirect_uri', this.redirect_uri)
@@ -84,6 +84,36 @@ export class SpotifyDataService {
 
   public setAccessToken(token_info: AccessResponse) {
     this.access_token = token_info;
+    localStorage.setItem('access_token', token_info.access_token);
+    localStorage.setItem('expires_in', token_info.expires_in.toString());
+    localStorage.setItem('refresh_token', token_info.refresh_token);
+    localStorage.setItem('creation_time', (Date.now() / 1000).toString());
+  }
+
+  private isTokenValid() : boolean {
+    const time_elapsed = (Date.now() / 1000) - Number(localStorage.getItem('creation_time')) 
+    return time_elapsed < Number(localStorage.getItem('expires_in'));
+  }
+    
+  
+  private refreshToken() {
+    if (!this.isTokenValid()) {
+      const headers = new HttpHeaders({
+        'Content-Type': 'application/x-www-form-urlencoded',
+      });
+      const body = new HttpParams()
+      .set('grant_type', 'refresh_token')
+      .set('refresh_token', localStorage.getItem('refresh_token')!)
+      .set('client_id', this.client_id);
+
+      this.http.post(
+        'https://accounts.spotify.com/api/token', 
+        body, 
+        { headers: headers })
+        .subscribe({
+          next: result => this.setAccessToken(result as AccessResponse)
+        });
+    }
   }
 
   public isAuthenticated(): boolean {
@@ -91,6 +121,7 @@ export class SpotifyDataService {
   }
 
   public getCurrentlyPlaying(): Observable<any> {
+    this.refreshToken();
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${this.access_token?.access_token}`
     })
