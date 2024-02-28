@@ -2,7 +2,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import shajs from 'sha.js';
-import { AccessResponse } from '../../utils/interfaces';
+import { AccessResponse, CurrentTrackObject } from '../../utils/interfaces';
 
 function randomString(length: number) {
   const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -10,6 +10,10 @@ function randomString(length: number) {
   for (var i = length; i > 0; --i)
     result += chars[Math.floor(Math.random() * chars.length)]
   return result
+}
+
+function isTrack(trackInfo: SpotifyApi.TrackObjectFull | SpotifyApi.EpisodeObjectFull): trackInfo is SpotifyApi.TrackObjectFull {
+  return 'album' in trackInfo;
 }
 
 @Injectable({
@@ -25,13 +29,13 @@ export class SpotifyDataService {
   constructor(private http: HttpClient) {
     this.access_token = localStorage.getItem('access_token');
     setInterval(
-      () => 
-      this.isAuthenticated() 
-      ? this.getCurrentlyPlaying()
-      .subscribe({
-        next: result => this.setCurrentlyPlaying(result as SpotifyApi.CurrentlyPlayingObject)
-      }) 
-      : console.log('No access token found.'),
+      () =>
+        this.isAuthenticated()
+          ? this.getCurrentlyPlaying()
+            .subscribe({
+              next: result => this.setCurrentlyPlaying(result as SpotifyApi.CurrentlyPlayingObject)
+            })
+          : console.log('No access token found.'),
       5000
     )
   }
@@ -57,7 +61,7 @@ export class SpotifyDataService {
     const paramObject = {
       response_type: 'code',
       //TODO: replace this w/ your client_id from the spotify developer page  
-      client_id: '5ea95dd4b2d5448992411461aad7436c',
+      client_id: this.client_id,
       scope: 'user-read-currently-playing',
       redirect_uri: 'http://localhost:4200/callback',
       state: generated_state,
@@ -92,25 +96,25 @@ export class SpotifyDataService {
     localStorage.setItem('creation_time', (Date.now() / 1000).toString());
   }
 
-  private isTokenValid() : boolean {
-    const time_elapsed = (Date.now() / 1000) - Number(localStorage.getItem('creation_time')) 
+  private isTokenValid(): boolean {
+    const time_elapsed = (Date.now() / 1000) - Number(localStorage.getItem('creation_time'))
     return time_elapsed < Number(localStorage.getItem('expires_in'));
   }
-    
-  
+
+
   private refreshToken() {
     if (!this.isTokenValid()) {
       const headers = new HttpHeaders({
         'Content-Type': 'application/x-www-form-urlencoded',
       });
       const body = new HttpParams()
-      .set('grant_type', 'refresh_token')
-      .set('refresh_token', localStorage.getItem('refresh_token')!)
-      .set('client_id', this.client_id);
+        .set('grant_type', 'refresh_token')
+        .set('refresh_token', localStorage.getItem('refresh_token')!)
+        .set('client_id', this.client_id);
 
       this.http.post(
-        'https://accounts.spotify.com/api/token', 
-        body, 
+        'https://accounts.spotify.com/api/token',
+        body,
         { headers: headers })
         .subscribe({
           next: result => this.setAccessToken(result as AccessResponse)
@@ -127,11 +131,29 @@ export class SpotifyDataService {
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${this.access_token}`
     })
-    return this.http.get('https://api.spotify.com/v1/me/player/currently-playing', 
+    return this.http.get('https://api.spotify.com/v1/me/player/currently-playing',
       { headers: headers })
   }
 
-  private setCurrentlyPlaying(current_info : SpotifyApi.CurrentlyPlayingObject) {
+  private setCurrentlyPlaying(current_info: SpotifyApi.CurrentlyPlayingObject) {
     this.currently_playing = current_info;
+  }
+
+  // Currently only supports tracks. TODO: Add episode support
+  public getCurrentObject() : CurrentTrackObject | null {
+    if (this.currently_playing !== null) {
+      if (isTrack(this.currently_playing.item!))
+        return {
+          'name': this.currently_playing.item.name,
+          'progress_ms': this.currently_playing.progress_ms,
+          'duration': this.currently_playing.item.duration_ms,
+          'is_playing': this.currently_playing.is_playing,
+          'type': this.currently_playing.currently_playing_type,
+          'album_name': this.currently_playing.item.album.name,
+          'album_img': this.currently_playing.item.album.images[0].url,
+          'artists': this.currently_playing.item.artists.map(artist => artist.name)
+        } as CurrentTrackObject
+    }
+    return null
   }
 }
