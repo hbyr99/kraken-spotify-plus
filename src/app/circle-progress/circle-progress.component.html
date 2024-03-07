@@ -1,4 +1,14 @@
-  <svg width="640" height="640" viewBox="-80 -80 800 800" style="transform:rotate(-90deg)">
-    <circle r="310" cx="320" cy="320" fill="transparent" stroke="#e0e0e0" stroke-width="16px" [attr.stroke-dasharray]="dasharray" stroke-dashoffset="0"></circle>
-    <circle r="310" cx="320" cy="320" stroke="#ff0000" stroke-width="16px" stroke-linecap="round" [attr.stroke-dashoffset]="dashoffset" fill="transparent" [attr.stroke-dasharray]="dasharray"></circle>
-  </svg>
+<svg class="progress" [attr.width]="size" [attr.height]="size" viewBox="-95 -70 800 800">
+  <circle [attr.r]="size/2 - 10" [attr.cx]="size/2" [attr.cy]="size/2" fill="transparent" [attr.stroke]="circleColor"
+    [attr.stroke-width]="circleWidth" [attr.stroke-dasharray]="dasharray" stroke-dashoffset="0">
+  </circle>
+
+  <circle [attr.r]="size/2 - 10" [attr.cx]="size/2" [attr.cy]="size/2" [attr.stroke]="progressColor"
+    [attr.stroke-width]="circleWidth" [attr.stroke-linecap]="progressShape"
+    [attr.stroke-dashoffset]="dasharray - (progress / duration * dasharray)" fill="transparent"
+    [attr.stroke-dasharray]="dasharray">
+  </circle>
+</svg>
+
+<br>
+<p>dashoffset</p>{{dasharray - (progress / duration * dasharray)}}

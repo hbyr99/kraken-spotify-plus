@@ -8,11 +8,11 @@ import { CircleProgressComponent } from '../../circle-progress/circle-progress.c
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent{
-    authObject: string | null = null
-    userAuthenticated: boolean = false
+export class HomeComponent {
+  authObject: string | null = null
+  userAuthenticated: boolean = false
 
-    progress_ms = 100;
-    duration_ms = 300;
-    constructor() { }
+  progress_ms = 0;
+  duration_ms = 1;
+  constructor() { }
 }
