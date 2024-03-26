@@ -1,0 +1,24 @@
+div {
+  position: absolute;
+  top: 140px;
+  left:170px;
+  width: 300px;
+  overflow: hidden;
+}
+
+.words {
+    position: relative;
+    animation: slide 20s linear infinite;
+    margin: 0;
+    white-space: nowrap;
+    color: white;
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}

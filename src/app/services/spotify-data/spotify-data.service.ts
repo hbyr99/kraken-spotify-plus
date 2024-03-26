@@ -104,6 +104,7 @@ export class SpotifyDataService {
 
   private refreshToken() {
     if (!this.isTokenValid()) {
+      console.log('Refreshing token');
       const headers = new HttpHeaders({
         'Content-Type': 'application/x-www-form-urlencoded',
       });
